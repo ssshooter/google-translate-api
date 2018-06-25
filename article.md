@@ -76,14 +76,3 @@ That may be useful for advanced programming patterns when we use functions to ge
 Now let's move forward and override a method. As of now, `Rabbit` inherits the `stop` method that sets `this.speed = 0` from `Animal`.
 
 If we specify our own `stop` in `Rabbit`, then it will be used instead:
-
-```js
-class Rabbit extends Animal {
-  stop() {
-    // ...this will be used for rabbit.stop()
-  }
-}
-```
-
-
-...But usually we don't want to totally replace a parent method, but rather to build on top of it, tweak or extend its functionality. We do something in our method, but call the parent method before/after it or in the process.

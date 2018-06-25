@@ -8,7 +8,7 @@ var languages = require('./languages');
 
 function translate(text, opts) {
     opts = opts || {};
-
+    console.log('\n')
     var e;
     [opts.from, opts.to].forEach(function (lang) {
         if (lang && !languages.isSupported(lang)) {
@@ -29,6 +29,7 @@ function translate(text, opts) {
     opts.from = languages.getCode(opts.from);
     opts.to = languages.getCode(opts.to);
     return token.get(text).then(function (token) {
+        console.log(text)
         var url = 'https://translate.google.cn/translate_a/single';
         var data = {
             client: 't',
@@ -49,68 +50,67 @@ function translate(text, opts) {
 
         return url + '?' + querystring.stringify(data);
     }).then(function (url) {
-        return got(url).then(function (res) {
-            console.log(res)
-            var result = {
-                text: '',
-                from: {
-                    language: {
-                        didYouMean: false,
-                        iso: ''
-                    },
-                    text: {
-                        autoCorrected: false,
-                        value: '',
-                        didYouMean: false
-                    }
+        return got.post(url)
+    }).then(function (res) {
+        var result = {
+            text: '',
+            from: {
+                language: {
+                    didYouMean: false,
+                    iso: ''
                 },
-                raw: ''
-            };
-
-            if (opts.raw) {
-                result.raw = res.body;
-            }
-
-            var body = safeEval(res.body);
-            body[0].forEach(function (obj) {
-                if (obj[0]) {
-                    result.text += obj[0];
+                text: {
+                    autoCorrected: false,
+                    value: '',
+                    didYouMean: false
                 }
-            });
+            },
+            raw: ''
+        };
 
-            if (body[2] === body[8][0][0]) {
-                result.from.language.iso = body[2];
-            } else {
-                result.from.language.didYouMean = true;
-                result.from.language.iso = body[8][0][0];
+        if (opts.raw) {
+            result.raw = res.body;
+        }
+
+        var body = safeEval(res.body);
+        body[0].forEach(function (obj) {
+            if (obj[0]) {
+                result.text += obj[0];
             }
-
-            if (body[7] && body[7][0]) {
-                var str = body[7][0];
-
-                str = str.replace(/<b><i>/g, '[');
-                str = str.replace(/<\/i><\/b>/g, ']');
-
-                result.from.text.value = str;
-
-                if (body[7][5] === true) {
-                    result.from.text.autoCorrected = true;
-                } else {
-                    result.from.text.didYouMean = true;
-                }
-            }
-
-            return result;
-        }).catch(function (err) {
-            var e;
-            e = new Error();
-            if (err.statusCode !== undefined && err.statusCode !== 200) {
-                e.code = 'BAD_REQUEST';
-            } else {
-                e.code = 'BAD_NETWORK';
-            }
-            throw e;
         });
+
+        if (body[2] === body[8][0][0]) {
+            result.from.language.iso = body[2];
+        } else {
+            result.from.language.didYouMean = true;
+            result.from.language.iso = body[8][0][0];
+        }
+
+        if (body[7] && body[7][0]) {
+            var str = body[7][0];
+
+            str = str.replace(/<b><i>/g, '[');
+            str = str.replace(/<\/i><\/b>/g, ']');
+
+            result.from.text.value = str;
+
+            if (body[7][5] === true) {
+                result.from.text.autoCorrected = true;
+            } else {
+                result.from.text.didYouMean = true;
+            }
+        }
+        console.log(result.text)
+        return result.text;
+    }).catch(function (err) {
+        var e;
+        e = new Error();
+        if (err.statusCode !== undefined && err.statusCode !== 200) {
+            e.code = 'BAD_REQUEST';
+        } else {
+            e.code = 'BAD_NETWORK';
+        }
+        throw e;
     });
 }
 
