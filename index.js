@@ -28,9 +28,8 @@ function translate(text, opts) {
 
     opts.from = languages.getCode(opts.from);
     opts.to = languages.getCode(opts.to);
-
     return token.get(text).then(function (token) {
-        var url = 'https://translate.google.com/translate_a/single';
+        var url = 'https://translate.google.cn/translate_a/single';
         var data = {
             client: 't',
             sl: opts.from,
@@ -39,10 +38,11 @@ function translate(text, opts) {
             dt: ['at', 'bd', 'ex', 'ld', 'md', 'qca', 'rw', 'rm', 'ss', 't'],
             ie: 'UTF-8',
             oe: 'UTF-8',
-            otf: 1,
+            otf: 2,// 1
+            source: 'btn',// null
             ssel: 0,
             tsel: 0,
-            kc: 7,
+            kc: 3, // 7
             q: text
         };
         data[token.name] = token.value;
@@ -50,6 +50,7 @@ function translate(text, opts) {
         return url + '?' + querystring.stringify(data);
     }).then(function (url) {
         return got(url).then(function (res) {
+            console.log(res)
             var result = {
                 text: '',
                 from: {
